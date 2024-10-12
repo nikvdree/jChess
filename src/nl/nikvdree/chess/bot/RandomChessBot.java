@@ -1,6 +1,6 @@
 package nl.nikvdree.chess.bot;
 
-import nl.nikvdree.chess.Game;
+import nl.nikvdree.chess.game.Game;
 import nl.nikvdree.chess.board.Board;
 import nl.nikvdree.chess.board.Move;
 

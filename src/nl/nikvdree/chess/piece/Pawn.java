@@ -29,35 +29,47 @@ public class Pawn extends Piece {
         List<Location> moves = new ArrayList<>();
         byte color = color(board.getBoard()[x][y]);
         if (color == WHITE) {
-            if (board.getBoard()[x + 1][y] == EMPTY) {
-                moves.add(new Location(x + 1, y));
-                if (x == 1) {
-                    if (board.getBoard()[x + 2][y] == EMPTY) {
-                        moves.add(new Location(x + 2, y));
+            if (Board.inBounds(x + 1, y)) {
+                if (board.getBoard()[x + 1][y] == EMPTY) {
+                    moves.add(new Location(x + 1, y));
+                    if (x == 1) {
+                        if (board.getBoard()[x + 2][y] == EMPTY) {
+                            moves.add(new Location(x + 2, y));
+                        }
                     }
                 }
             }
-            if (color(board.getBoard()[x + 1][y + 1]) == BLACK) {
-                moves.add(new Location(x + 1, y + 1));
+            if (Board.inBounds(x + 1, y + 1)) {
+                if (color(board.getBoard()[x + 1][y + 1]) == BLACK) {
+                    moves.add(new Location(x + 1, y + 1));
+                }
             }
-            if (color(board.getBoard()[x + 1][y - 1]) == BLACK) {
-                moves.add(new Location(x + 1, y - 1));
+            if (Board.inBounds(x + 1, y - 1)) {
+                if (color(board.getBoard()[x + 1][y - 1]) == BLACK) {
+                    moves.add(new Location(x + 1, y - 1));
+                }
             }
         }
         else if (color == BLACK) {
-            if (board.getBoard()[x - 1][y] == EMPTY) {
-                moves.add(new Location(x - 1, y));
-                if (x == 6) {
-                    if (board.getBoard()[x - 2][y] == EMPTY) {
-                        moves.add(new Location(x - 2, y));
+            if (Board.inBounds(x - 1, y)) {
+                if (board.getBoard()[x - 1][y] == EMPTY) {
+                    moves.add(new Location(x - 1, y));
+                    if (x == 6) {
+                        if (board.getBoard()[x - 2][y] == EMPTY) {
+                            moves.add(new Location(x - 2, y));
+                        }
                     }
                 }
             }
-            if (color(board.getBoard()[x - 1][y + 1])  == WHITE) {
-                moves.add(new Location(x - 1, y + 1));
+            if (Board.inBounds(x - 1, y + 1)) {
+                if (color(board.getBoard()[x - 1][y + 1]) == WHITE) {
+                    moves.add(new Location(x - 1, y + 1));
+                }
             }
-            if (color(board.getBoard()[x - 1][y - 1])  == WHITE) {
-                moves.add(new Location(x - 1, y - 1));
+            if (Board.inBounds(x - 1, y - 1)) {
+                if (color(board.getBoard()[x - 1][y - 1]) == WHITE) {
+                    moves.add(new Location(x - 1, y - 1));
+                }
             }
         }
         else {

@@ -10,4 +10,8 @@ public record Location(int x, int y) implements Comparable<Location> {
     public boolean isValid() {
         return x >= 0 && x < 8 && y >= 0 && y < 8;
     }
+
+    public static Location of(int x, int y){
+        return new Location(x, y);
+    }
 }

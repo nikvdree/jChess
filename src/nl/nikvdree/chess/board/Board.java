@@ -12,8 +12,12 @@ public class Board {
     private List<Location> black_pieces;
     private List<Location> white_pieces;
 
+    private Location whiteKing;
+    private Location blackKing;
+
     public Board(){
         board = new byte[8][8];
+        initPieces();
     }
 
     public Board build(){
@@ -31,20 +35,27 @@ public class Board {
                 {BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN},
                 {BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK},
         };
-        init_pieces();
+        initPieces();
         return this;
     }
 
-    private void init_pieces(){
+    private void initPieces(){
         black_pieces = new ArrayList<>();
         white_pieces = new ArrayList<>();
         for (int row = 0; row < board.length; row++) {
             for (int col = 0; col < board[row].length; col++) {
-                if (color(board[row][col]) == WHITE) {
+                byte piece = board[row][col];
+                if (color(piece) == WHITE) {
                     white_pieces.add(new Location(row, col));
+                    if (piece == WHITE_KING) {
+                        whiteKing = new Location(row, col);
+                    }
                 }
-                else if (color(board[row][col]) == BLACK) {
+                else if (color(piece) == BLACK) {
                     black_pieces.add(new Location(row, col));
+                    if (piece == BLACK_KING) {
+                        blackKing = new Location(row, col);
+                    }
                 }
             }
         }
@@ -55,6 +66,7 @@ public class Board {
         byte piece = board[location.x()][location.y()];
         switch (piece) {
             case WHITE_PAWN, BLACK_PAWN -> moves = Pawn.legalMoves(this, location.x(), location.y());
+            case WHITE_KNIGHT, BLACK_KNIGHT -> moves = Knight.legalMovesFor(this, location.x(), location.y());
             case WHITE_BISHOP, BLACK_BISHOP -> moves = Bishop.legalMoves(this, location.x(), location.y());
             case WHITE_ROOK, BLACK_ROOK -> moves = Rook.legalMoves(this, location.x(), location.y());
             case WHITE_QUEEN, BLACK_QUEEN -> moves = Queen.legalMoves(this, location.x(), location.y());
@@ -63,18 +75,38 @@ public class Board {
         return moves;
     }
 
-    public List<Move> legalMovesFor(byte color){
-        List<Move> moves = new ArrayList<>();
+    public List<Move> legalMovesFor(byte color) {
+        List<Move> allPossibleMoves = new ArrayList<>();
+        List<Move> legalMoves = new ArrayList<>();
+
         for (Location location : color == WHITE ? white_pieces : black_pieces) {
             for (Location to : legalMovesFor(location)) {
-                moves.add(new Move(board[location.x()][location.y()], location, to));
+                allPossibleMoves.add(new Move(board[location.x()][location.y()], location, to));
             }
         }
-        return moves;
+
+        for (Move move : allPossibleMoves) {
+            Board copyBoard = this.copy();
+
+            copyBoard.move(move);
+
+            if (!copyBoard.check(color)) {
+                legalMoves.add(move);
+            }
+        }
+
+        return legalMoves;
     }
+
 
     public byte[][] getBoard() {
         return board;
+    }
+
+    public byte pos(int x, int y){
+        if (x < 0 || x >= 8 || y < 0 || y >= 8)
+            return -1;
+        return board[x][y];
     }
 
     public void print(){
@@ -86,6 +118,10 @@ public class Board {
             System.out.println();
         }
         System.out.println("================");
+    }
+
+    public static boolean inBounds(int x, int y) {
+        return x >= 0 && x < 8 && y >= 0 && y < 8;
     }
 
     public void printMoves(int x, int y) {
@@ -129,52 +165,155 @@ public class Board {
         if (board[location.x()][location.y()] != EMPTY)
             throw new IllegalArgumentException("Location is already occupied");
 
-        if (color(piece) == WHITE)
+        if (color(piece) == WHITE) {
+            if (piece == WHITE_KING) {
+                whiteKing = location;
+            }
             white_pieces.add(location);
-        else if (color(piece) == BLACK)
+        }
+        else if (color(piece) == BLACK) {
             black_pieces.add(location);
+            if (piece == BLACK_KING) {
+                blackKing = location;
+            }
+        }
         board[location.x()][location.y()] = piece;
     }
 
     public void move(Location from, Location to){
-           board[to.x()][to.y()] = board[from.x()][from.y()];
-           board[from.x()][from.y()] = EMPTY;
-              if (color(board[to.x()][to.y()]) == WHITE) {
-                white_pieces.remove(from);
-                white_pieces.add(to);
-              }
-              else if (color(board[to.x()][to.y()]) == BLACK) {
-                black_pieces.remove(from);
-                black_pieces.add(to);
-              }
+        if (oppositeColor(from, to)){
+            if (color(board[from.x()][from.y()]) == WHITE)
+                black_pieces.remove(to);
+            else if (color(board[from.x()][from.y()]) == BLACK)
+                white_pieces.remove(to);
+        }
+        board[to.x()][to.y()] = board[from.x()][from.y()];
+        board[from.x()][from.y()] = EMPTY;
+        if (color(board[to.x()][to.y()]) == WHITE) {
+            white_pieces.remove(from);
+            white_pieces.add(to);
+        }
+        else if (color(board[to.x()][to.y()]) == BLACK) {
+            black_pieces.remove(from);
+            black_pieces.add(to);
+        }
     }
 
-    public static void main(String[] args) {
-        Board board = new Board();
-        board.getBoard()[4][4] = WHITE_ROOK;
-        board.getBoard()[5][4] = WHITE_ROOK;
-        board.getBoard()[3][4] = BLACK_ROOK;
-        board.getBoard()[3][3] = BLACK_PAWN;
-        board.printMoves(4,4);
-        board.getBoard()[4][4] = WHITE_BISHOP;
-        board.printMoves(4,4);
-        board.getBoard()[4][4] = WHITE_QUEEN;
-        board.printMoves(4,4);
-        board.getBoard()[4][4] = WHITE_KING;
-        board.printMoves(4,4);
-        board.getBoard()[4][4] = WHITE_PAWN;
-        board.printMoves(4,4);
-        board.getBoard()[4][4] = BLACK_PAWN;
-        board.printMoves(4,4);
-        board = new Board().build();
-        board.print();
-        board.printMoves(1,4);
-        board.add(BLACK_PAWN, new Location(2, 5));
-        board.add(BLACK_PAWN, new Location(2, 4));
-        board.printMoves(1,4);
+    public byte get(Location location) {
+        return board[location.x()][location.y()];
     }
 
     public boolean isOccupied(Location move) {
         return board[move.x()][move.y()] != EMPTY;
+    }
+
+    public boolean oppositeColor(Location from, Location to) {
+        return color(board[from.x()][from.y()]) != color(board[to.x()][to.y()]);
+    }
+
+    public void move(Move move) {
+        Location from = move.getFrom();
+        Location to = move.getTo();
+        byte piece = board[from.x()][from.y()];
+
+        if (piece == WHITE_KING) {
+            whiteKing = to;
+        } else if (piece == BLACK_KING) {
+            blackKing = to;
+        }
+
+        move(from, to);
+    }
+
+    public boolean check(byte color) {
+        Location king = color == WHITE ? whiteKing : blackKing;
+        if (king == null) {
+            throw new IllegalStateException("King not found on the board");
+        }
+
+        List<Location> opponentPieces = color == WHITE ? black_pieces : white_pieces;
+        for (Location opponentLocation : opponentPieces) {
+            List<Location> opponentMoves = legalMovesFor(opponentLocation);
+            if (opponentMoves.contains(king)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+
+    public boolean checkmate(byte color) {
+        if (!check(color)) {
+            return false;
+        }
+
+        List<Move> legalMoves = legalMovesFor(color);
+
+        return legalMoves.isEmpty();
+    }
+
+
+    public Board copy() {
+        Board newBoard = new Board();
+        newBoard.board = new byte[8][8];
+        for (int i = 0; i < 8; i++) {
+            System.arraycopy(this.board[i], 0, newBoard.board[i], 0, 8);
+        }
+
+        newBoard.white_pieces = new ArrayList<>();
+        for (Location loc : this.white_pieces) {
+            if (newBoard.get(loc) == WHITE_KING){
+                newBoard.whiteKing = new Location(loc.x(), loc.y());
+            }
+            newBoard.white_pieces.add(new Location(loc.x(), loc.y()));
+        }
+
+        newBoard.black_pieces = new ArrayList<>();
+        for (Location loc : this.black_pieces) {
+            if (newBoard.get(loc) == BLACK_KING){
+                newBoard.blackKing = new Location(loc.x(), loc.y());
+            }
+            newBoard.black_pieces.add(new Location(loc.x(), loc.y()));
+        }
+
+        return newBoard;
+    }
+
+
+    public static void main(String[] args) {
+        Board board = new Board();
+        board.add(WHITE_ROOK, Location.of(4, 4));
+        board.getBoard()[5][4] = WHITE_ROOK;
+        board.getBoard()[3][4] = BLACK_ROOK;
+        board.getBoard()[3][3] = BLACK_PAWN;
+        board.printMoves(4, 4);
+        board.getBoard()[4][4] = WHITE_BISHOP;
+        board.printMoves(4, 4);
+        board.getBoard()[4][4] = WHITE_QUEEN;
+        board.printMoves(4, 4);
+        board.getBoard()[4][4] = WHITE_KING;
+        board.printMoves(4, 4);
+        board.getBoard()[4][4] = WHITE_PAWN;
+        board.printMoves(4, 4);
+        board.getBoard()[4][4] = BLACK_PAWN;
+        board.printMoves(4, 4);
+        board.getBoard()[4][4] = BLACK_KNIGHT;
+        board.printMoves(4, 4);
+        board = new Board().build();
+        board.print();
+        board.printMoves(1, 4);
+        board.add(BLACK_PAWN, new Location(2, 5));
+        board.add(BLACK_PAWN, new Location(2, 4));
+        board.printMoves(1, 4);
+    }
+
+    public List<Location> getBlackPieces() {
+        return black_pieces;
+    }
+
+    public List<Location> getWhitePieces() {
+        return white_pieces;
     }
 }
