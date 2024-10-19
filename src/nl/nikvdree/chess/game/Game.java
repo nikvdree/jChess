@@ -27,7 +27,13 @@ public class Game {
 
     public void start(){
         board.print();
+        int i = 0;
         while (true){
+            if (i == 50){
+                System.out.println("Game over!");
+                break;
+            }
+            i++;
             System.out.println("Turn " + turnCount + ": " + (turn == WHITE ? "White" : "Black"));
 
             if (board.stalemate()){
