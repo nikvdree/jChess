@@ -254,6 +254,19 @@ public class Board {
         return legalMoves.isEmpty();
     }
 
+    public boolean stalemate(){ //TODO
+        for (int row = 0; row < board.length; row++) {
+            for (int col = 0; col < board[row].length; col++) {
+                if (board[row][col] != EMPTY) {
+                    if (board[row][col] != WHITE_KING || board[row][col] != BLACK_KING) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
 
     public Board copy() {
         Board newBoard = new Board();

@@ -30,6 +30,11 @@ public class Game {
         while (true){
             System.out.println("Turn " + turnCount + ": " + (turn == WHITE ? "White" : "Black"));
 
+            if (board.stalemate()){
+                System.out.println("Stalemate");
+                break;
+            }
+
             if (board.checkmate(turn)){
                 System.out.println("Checkmate! " + (turn == WHITE ? "Black" : "White") + " wins.");
                 break;
